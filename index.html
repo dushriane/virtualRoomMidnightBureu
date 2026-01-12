@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Midnight Bureau: Kigali Files</title>
+    <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+    <div id="app">
+        <canvas id="three-canvas"></canvas>
+        
+        <!-- UI Overlay -->
+        <div id="ui-overlay">
+            <h1>The Midnight Bureau</h1>
+            <p class="subtitle">Kigali Files</p>
+            <p class="instructions">Click and drag objects on the desk to uncover the mystery...</p>
+        </div>
+
+        <!-- Story Popup (Hidden by default) -->
+        <div id="story-popup" class="hidden">
+            <div class="popup-content">
+                <h2 id="popup-title">Discovery</h2>
+                <p id="popup-text"></p>
+                <button id="close-popup">Continue Investigation</button>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen">
+            <div class="loading-content">
+                <h2>Loading Case Files...</h2>
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
