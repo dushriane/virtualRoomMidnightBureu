@@ -56,6 +56,46 @@ body {
     backdrop-filter: blur(5px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9);
     animation: slideInLeft 1s ease-out;
+    transition: all 0.3s ease;
+}
+
+#ui-overlay.minimized {
+    max-width: 60px;
+    padding: 15px;
+}
+
+#ui-overlay.minimized #overlay-content {
+    display: none;
+}
+
+#toggle-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #d4a574;
+    color: #000;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.5em;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 11;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+#toggle-overlay:hover {
+    background: #fff;
+    transform: scale(1.1);
+}
+
+#overlay-content {
+    transition: opacity 0.3s ease;
 }
 
 @keyframes slideInLeft {
@@ -259,6 +299,11 @@ body {
         right: 15px;
         padding: 20px;
         max-width: none;
+    }
+
+    #ui-overlay.minimized {
+        right: auto;
+        max-width: 60px;
     }
 
     #ui-overlay h1 {

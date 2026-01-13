@@ -134,6 +134,7 @@ legPositions.forEach(pos => {
 // ============================================
 export const interactiveObjects = [];
 export let folder, imigongoBox; // Export for interaction
+export { scene, ambientLight, spotLight }; // Export for lighting control
 
 // 1. THE FOLDER (Case File)
 const folderGeometry = new THREE.BoxGeometry(2.5, 0.05, 3.5);
@@ -244,7 +245,7 @@ let coffeeMaterial;
     scene.add(coffeeTin);
 })();
 
-// 5. DESK LAMP (Visual element)
+// 5. INTERACTIVE DESK LAMP
 const lampBaseGeometry = new THREE.CylinderGeometry(0.3, 0.4, 0.2, 16);
 const lampBaseMaterial = new THREE.MeshStandardMaterial({ 
     color: 0x1a1a1a,
@@ -254,6 +255,7 @@ const lampBaseMaterial = new THREE.MeshStandardMaterial({
 const lampBase = new THREE.Mesh(lampBaseGeometry, lampBaseMaterial);
 lampBase.position.set(-5, 0.25, -3);
 lampBase.castShadow = true;
+lampBase.name = 'lamp';
 scene.add(lampBase);
 
 const lampArmGeometry = new THREE.CylinderGeometry(0.05, 0.05, 4, 8);
@@ -261,6 +263,56 @@ const lampArm = new THREE.Mesh(lampArmGeometry, lampBaseMaterial);
 lampArm.position.set(0, 2, 0);
 lampArm.rotation.z = -Math.PI / 6;
 lampBase.add(lampArm);
+
+// Lamp shade
+const lampShadeGeometry = new THREE.ConeGeometry(0.6, 0.8, 16, 1, true);
+const lampShadeMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0xd4a574,
+    side: THREE.DoubleSide,
+    metalness: 0.3,
+    roughness: 0.7
+});
+const lampShade = new THREE.Mesh(lampShadeGeometry, lampShadeMaterial);
+lampShade.position.set(1.6, 1.8, 0);
+lampShade.rotation.z = -Math.PI / 6;
+lampBase.add(lampShade);
+
+// Lamp light bulb (small sphere)
+const bulbGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+const bulbMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0xfff5e1,
+    emissive: 0xffaa00,
+    emissiveIntensity: 0.5
+});
+const bulb = new THREE.Mesh(bulbGeometry, bulbMaterial);
+bulb.position.set(1.6, 1.5, 0);
+lampBase.add(bulb);
+
+// Lamp's adjustable light source - SpotLight directed at desk
+const lampLight = new THREE.SpotLight(0xfff5e1, 8);
+lampLight.position.set(-3.4, 2.5, -3);
+lampLight.target.position.set(0, 0, 0); // Point at desk center
+lampLight.angle = Math.PI / 4; // 45 degree cone
+lampLight.penumbra = 0.4; // Soft edges
+lampLight.decay = 2;
+lampLight.distance = 15;
+lampLight.castShadow = true;
+lampLight.shadow.mapSize.width = 1024;
+lampLight.shadow.mapSize.height = 1024;
+scene.add(lampLight);
+scene.add(lampLight.target); // Add target to scene
+
+// Store lamp state
+lampBase.userData.isOn = true;
+lampBase.userData.lampLight = lampLight;
+lampBase.userData.bulbMaterial = bulbMaterial;
+lampBase.userData.brightness = 2; // Start at bright: 0 = off, 1 = dim, 2 = bright
+
+// Make lamp interactive
+interactiveObjects.push(lampBase);
+
+// Export lamp for interaction
+export const deskLamp = lampBase;
 
 // ============================================
 // INTERACTION SYSTEM
@@ -316,6 +368,25 @@ window.addEventListener('resize', () => {
 });
 
 // ============================================
+// UI OVERLAY TOGGLE
+// ============================================
+const toggleOverlayBtn = document.getElementById('toggle-overlay');
+const uiOverlay = document.getElementById('ui-overlay');
+
+toggleOverlayBtn.addEventListener('click', () => {
+    uiOverlay.classList.toggle('minimized');
+    
+    // Change button text
+    if (uiOverlay.classList.contains('minimized')) {
+        toggleOverlayBtn.textContent = '+';
+        toggleOverlayBtn.title = 'Maximize';
+    } else {
+        toggleOverlayBtn.textContent = '−';
+        toggleOverlayBtn.title = 'Minimize';
+    }
+});
+
+// ============================================
 // INITIALIZATION
 // ============================================
 // Hide loading screen after a short delay
@@ -332,3 +403,4 @@ animate();
 
 console.log('🕵️ The Midnight Bureau: Kigali Files initialized');
 console.log('💡 Move the folder to reveal the mystery...');
+console.log('💡 Click the lamp to adjust lighting (bright/dim/off)');

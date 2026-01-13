@@ -86,7 +86,8 @@ function onMouseMove(event) {
                 applyHoverEffect(object);
             }
             
-            canvas.style.cursor = 'grab';
+            // Different cursor for lamp (clickable) vs draggable objects
+            canvas.style.cursor = object.name === 'lamp' ? 'pointer' : 'grab';
         } else {
             // No hover
             if (hoveredObject) {
@@ -110,8 +111,15 @@ function onMouseDown(event) {
     const intersects = raycaster.intersectObjects(interactiveObjects);
     
     if (intersects.length > 0) {
+        const object = intersects[0].object;
+        
+        // Don't allow dragging the lamp - it's for clicking only
+        if (object.name === 'lamp') {
+            return;
+        }
+        
         isDragging = true;
-        selectedObject = intersects[0].object;
+        selectedObject = object;
         
         // Store original Y position
         if (!selectedObject.userData.originalY) {
@@ -185,10 +193,53 @@ function onClick(event) {
                 showStoryPopup('Hidden Artifact Discovered!', object.userData.clueText);
                 console.log('✨ Amulet revealed!');
             }
+        } else if (object.name === 'lamp') {
+            // Toggle lamp brightness
+            toggleLampBrightness(object);
         }
         
         console.log(`🔍 Examined: ${object.name}`);
     }
+}
+
+/**
+ * Toggle lamp brightness between 3 states: bright -> dim -> off -> bright
+ */
+function toggleLampBrightness(lamp) {
+    const lampLight = lamp.userData.lampLight;
+    const bulbMaterial = lamp.userData.bulbMaterial;
+    
+    // Cycle through brightness levels: 2 (bright) -> 1 (dim) -> 0 (off) -> 2
+    lamp.userData.brightness = (lamp.userData.brightness + 1) % 3;
+    
+    const brightness = lamp.userData.brightness;
+    
+    switch(brightness) {
+        case 0: // Off
+            lampLight.intensity = 0;
+            bulbMaterial.emissiveIntensity = 0;
+            bulbMaterial.emissive.setHex(0x000000);
+            console.log('💡 Lamp turned OFF - Maximum mystery!');
+            break;
+        case 1: // Dim
+            lampLight.intensity = 3;
+            bulbMaterial.emissiveIntensity = 0.4;
+            bulbMaterial.emissive.setHex(0xff8800);
+            console.log('💡 Lamp dimmed - Atmospheric mood');
+            break;
+        case 2: // Bright
+            lampLight.intensity = 8;
+            bulbMaterial.emissiveIntensity = 1.0;
+            bulbMaterial.emissive.setHex(0xffaa00);
+            console.log('💡 Lamp brightened - Better visibility');
+            break;
+    }
+    
+    // Visual feedback
+    lamp.scale.set(1.1, 1.1, 1.1);
+    setTimeout(() => {
+        lamp.scale.set(1, 1, 1);
+    }, 100);
 }
 
 /**
