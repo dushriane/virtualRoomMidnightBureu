@@ -27,13 +27,19 @@ body {
     display: block;
     width: 100%;
     height: 100%;
-    filter: grayscale(100%) contrast(130%) brightness(90%);
+    /* Noir filters temporarily reduced for visibility - re-enable after testing */
+    filter: grayscale(30%) contrast(110%) brightness(100%);
     transition: filter 0.3s ease;
 }
 
 #three-canvas:hover {
-    filter: grayscale(90%) contrast(125%) brightness(95%);
+    filter: grayscale(20%) contrast(105%) brightness(105%);
 }
+
+/* To restore full noir effect, use these values:
+   filter: grayscale(100%) contrast(130%) brightness(90%);
+   hover: grayscale(90%) contrast(125%) brightness(95%);
+*/
 
 /* ============================================
    UI OVERLAY (Top-left Instructions)

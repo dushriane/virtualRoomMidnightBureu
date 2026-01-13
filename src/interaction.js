@@ -170,8 +170,52 @@ function onClick(event) {
             object.scale.set(1, 1, 1);
         }, 100);
         
+        // Handle specific object interactions
+        if (object.name === 'folder' && object.userData.clueText) {
+            // Show folder clue
+            showStoryPopup('Case File Opened', object.userData.clueText);
+            console.log('📂 Opened case file');
+        } else if (object.name === 'imigongoBox' && object.userData.hiddenAmulet) {
+            // Reveal amulet from box
+            const amulet = object.userData.hiddenAmulet;
+            if (!amulet.visible) {
+                amulet.visible = true;
+                // Animate amulet rising from box
+                animateAmuletReveal(amulet);
+                showStoryPopup('Hidden Artifact Discovered!', object.userData.clueText);
+                console.log('✨ Amulet revealed!');
+            }
+        }
+        
         console.log(`🔍 Examined: ${object.name}`);
     }
+}
+
+/**
+ * Animate amulet rising from the Imigongo box
+ */
+function animateAmuletReveal(amulet) {
+    const startY = -0.3;
+    const endY = 1.2;
+    const duration = 1500; // 1.5 seconds
+    const startTime = Date.now();
+    
+    function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Ease-out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        
+        amulet.position.y = startY + (endY - startY) * eased;
+        amulet.rotation.z += 0.02; // Spin while rising
+        
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        }
+    }
+    
+    animate();
 }
 
 /**

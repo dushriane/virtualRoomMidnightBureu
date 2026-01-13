@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { initInteraction, updateInteraction, showStoryPopup } from './interaction.js';
 
 // ============================================
@@ -8,14 +9,14 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0a0a); // Deep noir black
 scene.fog = new THREE.Fog(0x0a0a0a, 10, 25); // Atmospheric fog
 
-// Camera
+// Camera - Angled view for better depth perception
 const camera = new THREE.PerspectiveCamera(
     60,
     window.innerWidth / window.innerHeight,
     0.1,
     100
 );
-camera.position.set(0, 8, 10);
+camera.position.set(0, 6, 12); // Lower and further back for better view
 camera.lookAt(0, 0, 0);
 
 // Renderer
@@ -30,16 +31,25 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft cinematic shadows
 
+// Orbit Controls for rotating view
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; // Smooth rotation
+controls.dampingFactor = 0.05;
+controls.target.set(0, 0, 0); // Look at desk center
+controls.minDistance = 5;
+controls.maxDistance = 20;
+controls.maxPolarAngle = Math.PI / 2.2; // Don't go below desk
+
 // ============================================
 // LIGHTING (Dramatic Noir Cone)
 // ============================================
-const spotLight = new THREE.SpotLight(0xfff5e1, 3); // Warm lamp color
+const spotLight = new THREE.SpotLight(0xfff5e1, 4); // Warm lamp color (increased intensity)
 spotLight.position.set(0, 10, 0);
 spotLight.castShadow = true;
-spotLight.angle = Math.PI / 6; // Narrow cone
+spotLight.angle = Math.PI / 4; // Wider cone for better coverage
 spotLight.penumbra = 0.3; // Soft edges
 spotLight.decay = 2;
-spotLight.distance = 20;
+spotLight.distance = 25;
 
 // Shadow quality
 spotLight.shadow.mapSize.width = 2048;
@@ -49,9 +59,18 @@ spotLight.shadow.camera.far = 15;
 
 scene.add(spotLight);
 
-// Ambient light (very subtle)
-const ambientLight = new THREE.AmbientLight(0x404040, 0.2);
+// Ambient light (increased for visibility)
+const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
 scene.add(ambientLight);
+
+// Development lights for better visibility (can be adjusted later)
+const frontLight = new THREE.DirectionalLight(0xffffff, 0.5);
+frontLight.position.set(0, 5, 10);
+scene.add(frontLight);
+
+const sideLight = new THREE.PointLight(0xffa500, 0.8, 30);
+sideLight.position.set(8, 4, 5);
+scene.add(sideLight);
 
 // ============================================
 // TEXTURE LOADER
@@ -78,23 +97,43 @@ const loadTexture = (path, fallbackColor) => {
 };
 
 // ============================================
-// THE DESK (Dark Wood Surface)
+// THE DESK (Dark Wood Surface with Legs)
 // ============================================
-const deskGeometry = new THREE.BoxGeometry(12, 0.3, 8);
 const deskMaterial = new THREE.MeshStandardMaterial({ 
     color: 0x2b1810, // Deep mahogany
     roughness: 0.8,
     metalness: 0.1
 });
-const desk = new THREE.Mesh(deskGeometry, deskMaterial);
-desk.position.y = 0;
-desk.receiveShadow = true;
-scene.add(desk);
+
+// Desk top
+const deskTopGeometry = new THREE.BoxGeometry(12, 0.3, 8);
+const deskTop = new THREE.Mesh(deskTopGeometry, deskMaterial);
+deskTop.position.y = 0;
+deskTop.receiveShadow = true;
+deskTop.castShadow = true;
+scene.add(deskTop);
+
+// Desk legs (4 corners)
+const legGeometry = new THREE.CylinderGeometry(0.15, 0.2, 2.5, 16);
+const legPositions = [
+    [-5, -1.4, 3.5],  // Front left
+    [5, -1.4, 3.5],   // Front right
+    [-5, -1.4, -3.5], // Back left
+    [5, -1.4, -3.5]   // Back right
+];
+
+legPositions.forEach(pos => {
+    const leg = new THREE.Mesh(legGeometry, deskMaterial);
+    leg.position.set(...pos);
+    leg.castShadow = true;
+    scene.add(leg);
+});
 
 // ============================================
 // RWANDAN OBJECTS
 // ============================================
 export const interactiveObjects = [];
+export let folder, imigongoBox; // Export for interaction
 
 // 1. THE FOLDER (Case File)
 const folderGeometry = new THREE.BoxGeometry(2.5, 0.05, 3.5);
@@ -102,10 +141,11 @@ const folderMaterial = new THREE.MeshStandardMaterial({
     color: 0xd4a574, // Manila folder color
     roughness: 0.9
 });
-const folder = new THREE.Mesh(folderGeometry, folderMaterial);
+folder = new THREE.Mesh(folderGeometry, folderMaterial);
 folder.position.set(-3, 0.2, 0);
 folder.castShadow = true;
 folder.name = 'folder';
+folder.userData.clueText = "THE GISHWATI MYSTERY\n\nAgent's Note:\n'The witness spoke of strange lights near Lake Kivu. The Imigongo box may hold the key. Check the traditional patterns - they're not just art, they're a map.'\n\n- Bureau Chief K.";
 scene.add(folder);
 interactiveObjects.push(folder);
 
@@ -156,11 +196,30 @@ let imigongoMaterial;
         metalness: 0.2
     });
     
-    const imigongoBox = new THREE.Mesh(imigongoGeometry, imigongoMaterial);
+    imigongoBox = new THREE.Mesh(imigongoGeometry, imigongoMaterial);
     imigongoBox.position.set(3, 0.75, -2);
     imigongoBox.castShadow = true;
     imigongoBox.rotation.y = Math.PI / 8;
     imigongoBox.name = 'imigongoBox';
+    
+    // Hidden artifact inside the box (golden amulet)
+    const amuletGeometry = new THREE.TorusGeometry(0.3, 0.1, 16, 32);
+    const amuletMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffd700, // Gold
+        metalness: 0.9,
+        roughness: 0.2,
+        emissive: 0xaa8800,
+        emissiveIntensity: 0.3
+    });
+    const amulet = new THREE.Mesh(amuletGeometry, amuletMaterial);
+    amulet.position.set(0, -0.3, 0); // Hidden inside
+    amulet.rotation.x = Math.PI / 2;
+    amulet.name = 'amulet';
+    amulet.visible = false; // Hidden initially
+    imigongoBox.add(amulet);
+    imigongoBox.userData.hiddenAmulet = amulet;
+    imigongoBox.userData.clueText = "A golden amulet emerges from the Imigongo box!\n\nInscription: 'Ubumwe - Unity'\n\nThis ancient artifact was said to guide travelers through the mist-covered mountains of Volcanoes National Park. The patterns match the missing map coordinates.";
+    
     scene.add(imigongoBox);
     interactiveObjects.push(imigongoBox);
 })();
@@ -233,6 +292,9 @@ function checkWinCondition() {
 // ============================================
 function animate() {
     requestAnimationFrame(animate);
+    
+    // Update orbit controls
+    controls.update();
     
     // Update interaction system
     updateInteraction();
