@@ -186,15 +186,69 @@ let noteMaterial;
 
 // 3. IMIGONGO PATTERNED BOX (Rwandan Art)
 const imigongoGeometry = new THREE.BoxGeometry(1.5, 1.2, 1.5);
+
+// Create Imigongo pattern using canvas texture as fallback
+const createImigongoPattern = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    // Base terracotta color
+    ctx.fillStyle = '#d4734d';
+    ctx.fillRect(0, 0, 512, 512);
+    
+    // Draw geometric patterns inspired by Imigongo art
+    ctx.strokeStyle = '#8b3a1f';
+    ctx.lineWidth = 8;
+    
+    // Draw diagonal lines and geometric shapes
+    for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 5; j++) {
+            const x = i * 102.4 + 25;
+            const y = j * 102.4 + 25;
+            
+            // Alternating patterns
+            if ((i + j) % 2 === 0) {
+                // Draw diamonds
+                ctx.beginPath();
+                ctx.moveTo(x + 51, y);
+                ctx.lineTo(x + 102, y + 51);
+                ctx.lineTo(x + 51, y + 102);
+                ctx.lineTo(x, y + 51);
+                ctx.closePath();
+                ctx.stroke();
+                
+                ctx.fillStyle = '#a6523b';
+                ctx.fill();
+            } else {
+                // Draw circles
+                ctx.beginPath();
+                ctx.arc(x + 51, y + 51, 40, 0, Math.PI * 2);
+                ctx.fillStyle = '#8b3a1f';
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+    }
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    return texture;
+};
+
 let imigongoMaterial;
 
 (async () => {
     const imigongoTexture = await loadTexture('/assets/textures/imigongo_pattern.jpg');
+    const patternTexture = imigongoTexture || createImigongoPattern();
+    
     imigongoMaterial = new THREE.MeshStandardMaterial({ 
-        map: imigongoTexture,
-        color: imigongoTexture ? 0xffffff : 0xcc6644, // Terracotta fallback
-        roughness: 0.6,
-        metalness: 0.2
+        map: patternTexture,
+        color: 0xffffff,
+        roughness: 0.7,
+        metalness: 0.1
     });
     
     imigongoBox = new THREE.Mesh(imigongoGeometry, imigongoMaterial);
@@ -243,6 +297,40 @@ let coffeeMaterial;
     coffeeTin.castShadow = true;
     coffeeTin.name = 'coffeeTin';
     scene.add(coffeeTin);
+    
+    // Add visible label band around the tin
+    const labelGeometry = new THREE.CylinderGeometry(0.52, 0.52, 0.5, 32);
+    const labelMaterial = new THREE.MeshStandardMaterial({
+        color: 0xf4e8c1, // Cream/beige label color
+        roughness: 0.8,
+        metalness: 0.1
+    });
+    const label = new THREE.Mesh(labelGeometry, labelMaterial);
+    label.position.y = 0.2;
+    coffeeTin.add(label);
+    
+    // Add "GORILLA COFFEE" text using simple geometry
+    const textBand = new THREE.RingGeometry(0.52, 0.53, 32);
+    const textMaterial = new THREE.MeshStandardMaterial({
+        color: 0x2d1810, // Dark brown for text
+        roughness: 0.9,
+        side: THREE.DoubleSide
+    });
+    const textRing = new THREE.Mesh(textBand, textMaterial);
+    textRing.rotation.x = Math.PI / 2;
+    textRing.position.y = 0.3;
+    coffeeTin.add(textRing);
+    
+    // Add mountain silhouette detail on label
+    const detailGeometry = new THREE.TorusGeometry(0.3, 0.03, 8, 16);
+    const detailMaterial = new THREE.MeshStandardMaterial({
+        color: 0x8b4513,
+        roughness: 0.7
+    });
+    const detail = new THREE.Mesh(detailGeometry, detailMaterial);
+    detail.rotation.x = Math.PI / 2;
+    detail.position.y = 0.2;
+    coffeeTin.add(detail);
 })();
 
 // 5. INTERACTIVE DESK LAMP
@@ -317,7 +405,7 @@ export const deskLamp = lampBase;
 // ============================================
 // INTERACTION SYSTEM
 // ============================================
-initInteraction(camera, interactiveObjects, renderer.domElement);
+initInteraction(camera, interactiveObjects, renderer.domElement, controls);
 
 // ============================================
 // WIN CONDITION CHECKER

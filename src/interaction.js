@@ -3,14 +3,16 @@ import * as THREE from 'three';
 // ============================================
 // DRAG INTERACTION SYSTEM
 // ============================================
-let camera, interactiveObjects, canvas;
+let camera, interactiveObjects, canvas, controls;
 let raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 let isDragging = false;
+let hasDragged = false; // Track if user actually dragged (not just clicked)
 let selectedObject = null;
 let dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // XZ plane at desk height
 let intersection = new THREE.Vector3();
 let offset = new THREE.Vector3();
+let dragStartPos = new THREE.Vector2(); // Store initial mouse position
 
 // Visual feedback
 let outlineMaterial = null;
@@ -19,10 +21,11 @@ let hoveredObject = null;
 /**
  * Initialize the interaction system
  */
-export function initInteraction(cam, objects, canvasElement) {
+export function initInteraction(cam, objects, canvasElement, orbitControls) {
     camera = cam;
     interactiveObjects = objects;
     canvas = canvasElement;
+    controls = orbitControls;
     
     // Event listeners
     canvas.addEventListener('mousemove', onMouseMove);
@@ -49,6 +52,15 @@ function onMouseMove(event) {
     updateMouseCoordinates(event);
     
     if (isDragging && selectedObject) {
+        // Check if mouse has moved significantly (more than 5 pixels)
+        const dragDistance = Math.sqrt(
+            Math.pow(mouse.x - dragStartPos.x, 2) + 
+            Math.pow(mouse.y - dragStartPos.y, 2)
+        );
+        if (dragDistance > 0.02) {
+            hasDragged = true;
+        }
+        
         // Cast ray to drag plane
         raycaster.setFromCamera(mouse, camera);
         
@@ -119,7 +131,16 @@ function onMouseDown(event) {
         }
         
         isDragging = true;
+        hasDragged = false; // Reset drag flag
         selectedObject = object;
+        
+        // Store initial mouse position
+        dragStartPos.copy(mouse);
+        
+        // Disable OrbitControls while dragging
+        if (controls) {
+            controls.enabled = false;
+        }
         
         // Store original Y position
         if (!selectedObject.userData.originalY) {
@@ -155,6 +176,11 @@ function onMouseUp() {
         isDragging = false;
         selectedObject = null;
         canvas.style.cursor = 'grab';
+        
+        // Re-enable OrbitControls after drag
+        if (controls) {
+            controls.enabled = true;
+        }
     }
 }
 
@@ -162,7 +188,11 @@ function onMouseUp() {
  * Click handler for non-draggable interactions
  */
 function onClick(event) {
-    if (isDragging) return;
+    // Don't trigger click if user was dragging
+    if (isDragging || hasDragged) {
+        hasDragged = false; // Reset for next interaction
+        return;
+    }
     
     updateMouseCoordinates(event);
     raycaster.setFromCamera(mouse, camera);
