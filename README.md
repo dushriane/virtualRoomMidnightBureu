@@ -123,27 +123,6 @@ The application will run with **fallback colors** if textures are missing:
 | **JavaScript (ES6+)** | Core programming language |
 | **CSS3** | Film noir filters and UI styling |
 
----
-
-## 📁 Project Structure
-
-```
-virtualRoomMidnightBureu/
-├── assets/
-│   ├── textures/
-│   │   ├── imigongo_pattern.jpg    # Rwandan geometric art
-│   │   ├── coffee_label.jpg        # Gorilla Coffee tin texture
-│   │   └── note_texture.png        # Hidden clue note
-│   └── sounds/
-│       └── kigali_rain.mp3         # (Optional) Ambient audio
-├── src/
-│   ├── main.js                     # Scene setup, objects, lighting
-│   ├── interaction.js              # Drag controls, raycasting
-│   └── style.css                   # Noir filters, UI overlays
-├── index.html                      # HTML entry point
-├── package.json                    # Dependencies
-└── README.md                       # This file
-```
 
 ---
 
@@ -246,18 +225,6 @@ This creates an optimized build in the `dist/` folder.
 
 ---
 
-## 🔮 Future Enhancements
-
-- [ ] Add ambient rain audio with volume control
-- [ ] Multiple case files with different mysteries
-- [ ] Animated character silhouette in background
-- [ ] Mobile touch support
-- [ ] Voice narration in Kinyarwanda/English
-- [ ] More Rwandan objects (basket, traditional drum)
-- [ ] Day/night cycle transitions
-
----
-
 ## 📚 Learning Resources
 
 - [Three.js Documentation](https://threejs.org/docs/)
@@ -272,28 +239,6 @@ This creates an optimized build in the `dist/` folder.
 - **Concept**: Kigali Noir - Fusion of global noir with Rwandan culture
 - **Art Style**: Film noir aesthetics + Rwandan traditional patterns
 - **Technology**: Three.js, Vite, Modern JavaScript
-
----
-
-## 📜 License
-
-MIT License - Feel free to use this project for learning or creating your own cultural noir experiences!
-
----
-
-## 🌍 Promoting Rwanda
-
-This project aims to showcase Rwanda's rich culture through interactive media:
-- **Art**: Imigongo patterns
-- **Nature**: Gishwati forests, Volcanoes National Park
-- **Craftsmanship**: Coffee culture
-- **History**: Blending traditional and modern Rwanda
-
-*Experience Kigali through the lens of noir detective fiction.*
-
----
-
-**Built with ❤️ and ☕ for Rwanda**
 
 ---
 
